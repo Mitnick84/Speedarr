@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/collapsible';
 import { apiClient } from '@/api/client';
 import { getErrorMessage } from '@/lib/utils';
+import { isMasked } from '@/lib/secrets';
 import { PasswordInput } from './PasswordInput';
 import { TestConnectionButton } from './TestConnectionButton';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
@@ -205,9 +206,9 @@ const DownloadClientCard: React.FC<DownloadClientCardProps> = ({
                 <div className="space-y-2">
                   <Label>Password</Label>
                   <PasswordInput
-                    value={client.password === '***REDACTED***' ? '' : (client.password || '')}
+                    value={isMasked(client.password) ? '' : (client.password || '')}
                     onChange={(e) => updateField('password', e.target.value)}
-                    placeholder={client.password === '***REDACTED***' ? 'Current password is set' : 'Enter password'}
+                    placeholder={isMasked(client.password) ? 'Current password is set' : 'Enter password'}
                     disabled={isSaving || !client.enabled}
                     maxLength={128}
                   />
@@ -227,9 +228,9 @@ const DownloadClientCard: React.FC<DownloadClientCardProps> = ({
                   )}
                 </div>
                 <PasswordInput
-                  value={client.api_key === '***REDACTED***' ? '' : (client.api_key || '')}
+                  value={isMasked(client.api_key) ? '' : (client.api_key || '')}
                   onChange={(e) => updateField('api_key', e.target.value)}
-                  placeholder={client.api_key === '***REDACTED***' ? 'Current API key is set' : 'Enter API key'}
+                  placeholder={isMasked(client.api_key) ? 'Current API key is set' : 'Enter API key'}
                   disabled={isSaving || !client.enabled}
                   maxLength={128}
                 />
@@ -241,9 +242,9 @@ const DownloadClientCard: React.FC<DownloadClientCardProps> = ({
               <div className="space-y-2">
                 <Label>Password</Label>
                 <PasswordInput
-                  value={client.password === '***REDACTED***' ? '' : (client.password || '')}
+                  value={isMasked(client.password) ? '' : (client.password || '')}
                   onChange={(e) => updateField('password', e.target.value)}
-                  placeholder={client.password === '***REDACTED***' ? 'Current password is set' : 'Enter password'}
+                  placeholder={isMasked(client.password) ? 'Current password is set' : 'Enter password'}
                   disabled={isSaving || !client.enabled}
                   maxLength={128}
                 />
@@ -267,8 +268,8 @@ const DownloadClientCard: React.FC<DownloadClientCardProps> = ({
                   config={client}
                   disabled={isSaving || !client.url}
                   useExisting={
-                    (client.api_key === '***REDACTED***') ||
-                    (client.password === '***REDACTED***')
+                    isMasked(client.api_key) ||
+                    isMasked(client.password)
                   }
                 />
               )}

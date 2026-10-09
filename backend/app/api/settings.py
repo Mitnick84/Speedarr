@@ -593,7 +593,7 @@ async def test_connection(
             webhook_url = config_data.get("webhook_url")
 
             # If use_existing or URL is masked, use the saved config
-            if test_request.use_existing or webhook_url == "***REDACTED***":
+            if test_request.use_existing or webhook_url == REDACTED:
                 if app_config.notifications.discord.webhook_url:
                     webhook_url = app_config.notifications.discord.webhook_url
                 else:
@@ -633,10 +633,10 @@ async def test_connection(
             api_token = config_data.get("api_token")
 
             # If use_existing or values are masked, use the saved config
-            if test_request.use_existing or user_key == "***REDACTED***":
+            if test_request.use_existing or user_key == REDACTED:
                 if app_config.notifications.pushover.user_key:
                     user_key = app_config.notifications.pushover.user_key
-            if test_request.use_existing or api_token == "***REDACTED***":
+            if test_request.use_existing or api_token == REDACTED:
                 if app_config.notifications.pushover.api_token:
                     api_token = app_config.notifications.pushover.api_token
 
@@ -677,10 +677,10 @@ async def test_connection(
             chat_id = config_data.get("chat_id")
 
             # If use_existing or values are masked, use the saved config
-            if test_request.use_existing or bot_token == "***REDACTED***":
+            if test_request.use_existing or bot_token == REDACTED:
                 if app_config.notifications.telegram.bot_token:
                     bot_token = app_config.notifications.telegram.bot_token
-            if test_request.use_existing or chat_id == "***REDACTED***":
+            if test_request.use_existing or chat_id == REDACTED:
                 if app_config.notifications.telegram.chat_id:
                     chat_id = app_config.notifications.telegram.chat_id
 
@@ -820,7 +820,7 @@ async def test_connection(
             if snmp_config.version == "v3":
                 if (
                     snmp_config.auth_protocol != "none"
-                    and snmp_config.auth_password == "***REDACTED***"
+                    and snmp_config.auth_password == REDACTED
                 ):
                     return TestConnectionResponse(
                         success=False,
@@ -828,13 +828,13 @@ async def test_connection(
                     )
                 if (
                     snmp_config.priv_protocol != "none"
-                    and snmp_config.priv_password == "***REDACTED***"
+                    and snmp_config.priv_password == REDACTED
                 ):
                     return TestConnectionResponse(
                         success=False,
                         message="Cannot test with masked priv password. Please enter the actual password.",
                     )
-            elif snmp_config.community == "***REDACTED***":
+            elif snmp_config.community == REDACTED:
                 return TestConnectionResponse(
                     success=False,
                     message="Cannot test with masked community string. Please enter the actual value.",
@@ -1355,14 +1355,14 @@ async def update_download_clients(
                 raise ValueError(moved_secret_message(f'Download client "{client_data.get("name") or client_id}"', moved[1]))
 
             # Preserve password if masked (but allow empty string to clear it)
-            if client_data.get("password") == "***REDACTED***":
+            if client_data.get("password") == REDACTED:
                 if existing and existing.password:
                     client_data["password"] = existing.password
                 else:
                     client_data["password"] = None
 
             # Preserve api_key if masked (but allow empty string to clear it)
-            if client_data.get("api_key") == "***REDACTED***":
+            if client_data.get("api_key") == REDACTED:
                 if existing and existing.api_key:
                     client_data["api_key"] = existing.api_key
                 else:
@@ -1502,9 +1502,9 @@ async def update_media_servers(
             if moved:
                 raise ValueError(moved_secret_message(f'Media server "{data.get("name") or sid}"', moved[1]))
             # Preserve masked secrets
-            if data.get("token") == "***REDACTED***":
+            if data.get("token") == REDACTED:
                 data["token"] = prev.token if prev and prev.token else ""
-            if data.get("api_key") == "***REDACTED***":
+            if data.get("api_key") == REDACTED:
                 data["api_key"] = prev.api_key if prev and prev.api_key else ""
             try:
                 processed.append(MediaServerConfig(**data))

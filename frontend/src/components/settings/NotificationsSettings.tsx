@@ -12,6 +12,7 @@ import { apiClient } from '@/api/client';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { useSettingsTab } from '@/hooks/useSettingsTab';
 import { getErrorMessage } from '@/lib/utils';
+import { isMasked } from '@/lib/secrets';
 
 interface DiscordConfig {
   enabled: boolean;
@@ -109,7 +110,7 @@ export const NotificationsSettings: React.FC = () => {
 
     // Auto-test webhook if enabled and URL is set (not masked)
     if (config.discord.enabled && config.discord.webhook_url &&
-        config.discord.webhook_url !== '***REDACTED***') {
+        !isMasked(config.discord.webhook_url)) {
 
       setSuccess('Testing webhook...');
 
@@ -155,7 +156,7 @@ export const NotificationsSettings: React.FC = () => {
 
     try {
       // If webhook URL is masked, use the existing saved URL
-      const useExisting = config.discord.webhook_url === '***REDACTED***';
+      const useExisting = isMasked(config.discord.webhook_url);
       const response = await apiClient.testConnection('discord', {
         webhook_url: config.discord.webhook_url,
       }, useExisting);
@@ -230,7 +231,7 @@ export const NotificationsSettings: React.FC = () => {
     setGotifyTestResult(null);
 
     try {
-      const useExisting = config.gotify.app_token?.includes('***REDACTED***');
+      const useExisting = isMasked(config.gotify.app_token);
       const response = await apiClient.testConnection('gotify', {
         server_url: config.gotify.server_url,
         app_token: config.gotify.app_token,
@@ -256,7 +257,7 @@ export const NotificationsSettings: React.FC = () => {
     setNtfyTestResult(null);
 
     try {
-      const useExisting = config.ntfy.topic?.includes('***REDACTED***') ?? false;
+      const useExisting = isMasked(config.ntfy.topic);
       const response = await apiClient.testConnection('ntfy', {
         server_url: config.ntfy.server_url || 'https://ntfy.sh',
         topic: config.ntfy.topic,
@@ -467,9 +468,9 @@ export const NotificationsSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="discord-webhook">Webhook URL</Label>
                 <PasswordInput
-                  value={config.discord.webhook_url === '***REDACTED***' ? '' : config.discord.webhook_url}
+                  value={isMasked(config.discord.webhook_url) ? '' : config.discord.webhook_url}
                   onChange={(e) => updateDiscordConfig('webhook_url', e.target.value)}
-                  placeholder={config.discord.webhook_url === '***REDACTED***' ? 'Current webhook URL is set' : 'https://discord.com/api/webhooks/...'}
+                  placeholder={isMasked(config.discord.webhook_url) ? 'Current webhook URL is set' : 'https://discord.com/api/webhooks/...'}
                   disabled={isSaving}
                   maxLength={512}
                 />
@@ -614,9 +615,9 @@ export const NotificationsSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="pushover-user-key">User Key</Label>
                 <PasswordInput
-                  value={config.pushover.user_key === '***REDACTED***' ? '' : config.pushover.user_key || ''}
+                  value={isMasked(config.pushover.user_key) ? '' : config.pushover.user_key || ''}
                   onChange={(e) => updatePushoverConfig('user_key', e.target.value)}
-                  placeholder={config.pushover.user_key === '***REDACTED***' ? 'User key is set' : 'Enter your Pushover user key'}
+                  placeholder={isMasked(config.pushover.user_key) ? 'User key is set' : 'Enter your Pushover user key'}
                   disabled={isSaving}
                   maxLength={128}
                 />
@@ -625,9 +626,9 @@ export const NotificationsSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="pushover-api-token">API Token</Label>
                 <PasswordInput
-                  value={config.pushover.api_token === '***REDACTED***' ? '' : config.pushover.api_token || ''}
+                  value={isMasked(config.pushover.api_token) ? '' : config.pushover.api_token || ''}
                   onChange={(e) => updatePushoverConfig('api_token', e.target.value)}
-                  placeholder={config.pushover.api_token === '***REDACTED***' ? 'API token is set' : 'Enter your Pushover API token'}
+                  placeholder={isMasked(config.pushover.api_token) ? 'API token is set' : 'Enter your Pushover API token'}
                   disabled={isSaving}
                   maxLength={128}
                 />
@@ -791,9 +792,9 @@ export const NotificationsSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="telegram-bot-token">Bot Token</Label>
                 <PasswordInput
-                  value={config.telegram.bot_token === '***REDACTED***' ? '' : config.telegram.bot_token || ''}
+                  value={isMasked(config.telegram.bot_token) ? '' : config.telegram.bot_token || ''}
                   onChange={(e) => updateTelegramConfig('bot_token', e.target.value)}
-                  placeholder={config.telegram.bot_token === '***REDACTED***' ? 'Bot token is set' : 'Enter your Telegram bot token'}
+                  placeholder={isMasked(config.telegram.bot_token) ? 'Bot token is set' : 'Enter your Telegram bot token'}
                   disabled={isSaving}
                   maxLength={128}
                 />
@@ -806,9 +807,9 @@ export const NotificationsSettings: React.FC = () => {
                 <Label htmlFor="telegram-chat-id">Chat ID</Label>
                 <PasswordInput
                   id="telegram-chat-id"
-                  value={config.telegram.chat_id === '***REDACTED***' ? '' : config.telegram.chat_id || ''}
+                  value={isMasked(config.telegram.chat_id) ? '' : config.telegram.chat_id || ''}
                   onChange={(e) => updateTelegramConfig('chat_id', e.target.value)}
-                  placeholder={config.telegram.chat_id === '***REDACTED***' ? 'Chat ID is set' : 'Enter chat ID or username'}
+                  placeholder={isMasked(config.telegram.chat_id) ? 'Chat ID is set' : 'Enter chat ID or username'}
                   disabled={isSaving}
                   maxLength={100}
                 />
@@ -966,9 +967,9 @@ export const NotificationsSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="gotify-app-token">Application Token</Label>
                 <PasswordInput
-                  value={config.gotify.app_token === '***REDACTED***' ? '' : config.gotify.app_token || ''}
+                  value={isMasked(config.gotify.app_token) ? '' : config.gotify.app_token || ''}
                   onChange={(e) => updateGotifyConfig('app_token', e.target.value)}
-                  placeholder={config.gotify.app_token === '***REDACTED***' ? 'App token is set' : 'Enter your Gotify app token'}
+                  placeholder={isMasked(config.gotify.app_token) ? 'App token is set' : 'Enter your Gotify app token'}
                   disabled={isSaving}
                   maxLength={128}
                 />
@@ -1147,9 +1148,9 @@ export const NotificationsSettings: React.FC = () => {
                 <Label htmlFor="ntfy-topic">Topic</Label>
                 <PasswordInput
                   id="ntfy-topic"
-                  value={config.ntfy.topic === '***REDACTED***' ? '' : config.ntfy.topic || ''}
+                  value={isMasked(config.ntfy.topic) ? '' : config.ntfy.topic || ''}
                   onChange={(e) => updateNtfyConfig('topic', e.target.value)}
-                  placeholder={config.ntfy.topic === '***REDACTED***' ? 'Topic is set' : 'speedarr-notifications'}
+                  placeholder={isMasked(config.ntfy.topic) ? 'Topic is set' : 'speedarr-notifications'}
                   disabled={isSaving}
                   maxLength={100}
                 />

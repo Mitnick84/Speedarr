@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { apiClient } from '@/api/client';
 import { getErrorMessage } from '@/lib/utils';
+import { isMasked } from '@/lib/secrets';
 import { PasswordInput } from './PasswordInput';
 import { TestConnectionButton } from './TestConnectionButton';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
@@ -114,9 +115,9 @@ const MediaServerCard: React.FC<{
               <div className="space-y-2">
                 <Label>X-Plex-Token</Label>
                 <PasswordInput
-                  value={server.token === '***REDACTED***' ? '' : (server.token || '')}
+                  value={isMasked(server.token) ? '' : (server.token || '')}
                   onChange={(e) => update('token', e.target.value)}
-                  placeholder={server.token === '***REDACTED***' ? 'Current token is set' : 'Enter X-Plex-Token'}
+                  placeholder={isMasked(server.token) ? 'Current token is set' : 'Enter X-Plex-Token'}
                   disabled={isSaving || !server.enabled} maxLength={128}
                 />
                 {helpNode}
@@ -126,9 +127,9 @@ const MediaServerCard: React.FC<{
               <div className="space-y-2">
                 <Label>API Key</Label>
                 <PasswordInput
-                  value={server.api_key === '***REDACTED***' ? '' : (server.api_key || '')}
+                  value={isMasked(server.api_key) ? '' : (server.api_key || '')}
                   onChange={(e) => update('api_key', e.target.value)}
-                  placeholder={server.api_key === '***REDACTED***' ? 'Current API key is set' : 'Enter API key'}
+                  placeholder={isMasked(server.api_key) ? 'Current API key is set' : 'Enter API key'}
                   disabled={isSaving || !server.enabled} maxLength={128}
                 />
                 {helpNode}
@@ -170,7 +171,7 @@ const MediaServerCard: React.FC<{
                   service={server.type}
                   config={server}
                   disabled={isSaving || !server.url}
-                  useExisting={(server.token === '***REDACTED***') || (server.api_key === '***REDACTED***')}
+                  useExisting={isMasked(server.token) || isMasked(server.api_key)}
                 />
               )}
             </div>

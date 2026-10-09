@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { PasswordInput } from './PasswordInput';
 import { apiClient } from '@/api/client';
 import { getErrorMessage } from '@/lib/utils';
+import { isMasked } from '@/lib/secrets';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { useSettingsTab } from '@/hooks/useSettingsTab';
 import type { SNMPInterface } from '@/types';
@@ -385,9 +386,9 @@ export const SNMPSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="snmp-community">Community String</Label>
                 <PasswordInput
-                  value={config.community === '***REDACTED***' ? '' : config.community}
+                  value={isMasked(config.community) ? '' : config.community}
                   onChange={(e) => updateConfig('community', e.target.value)}
-                  placeholder={config.community === '***REDACTED***' ? 'Current community string is set' : 'public'}
+                  placeholder={isMasked(config.community) ? 'Current community string is set' : 'public'}
                   disabled={isSaving}
                   maxLength={64}
                 />
