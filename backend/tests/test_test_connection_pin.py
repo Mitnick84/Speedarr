@@ -189,3 +189,39 @@ async def test_gotify_masked_token_is_pinned_to_the_saved_server(monkeypatch):
     assert resp.success is True, resp.message
     url, kwargs = _Session.posted[0]
     assert url == "http://gotify:80/message" and kwargs["headers"]["X-Gotify-Key"] == "AUDITMARK-gotify"
+
+
+def _ntfy_config(server="http://ntfy:80"):
+    cfg = _config()
+    cfg.notifications.ntfy.topic = "AUDITMARK-topic"
+    cfg.notifications.ntfy.server_url = server
+    return cfg
+
+
+async def test_ntfy_masked_topic_is_pinned_to_the_saved_server(monkeypatch):
+    # A typed server with a saved topic is refused, never swapped for the saved one (audit NEW-11).
+    _Session.posted = []
+    monkeypatch.setattr("aiohttp.ClientSession", _Session)
+    resp = await _test("ntfy", {"server_url": ATTACKER, "topic": REDACTED}, app_config=_ntfy_config())
+    assert resp.success is False and resp.message == "Enter the topic to test a different address"
+    assert _Session.posted == []
+    resp = await _test("ntfy", {"server_url": ATTACKER, "topic": ""}, use_existing=True, app_config=_ntfy_config())
+    assert resp.success is False and PIN in resp.message
+    assert _Session.posted == []
+
+
+async def test_ntfy_masked_topic_goes_to_the_saved_server(monkeypatch):
+    monkeypatch.setattr("aiohttp.ClientSession", _Session)
+    for typed in ("http://ntfy:80/", "http://ntfy:80", ""):
+        _Session.posted = []
+        resp = await _test("ntfy", {"server_url": typed, "topic": REDACTED}, app_config=_ntfy_config())
+        assert resp.success is True, resp.message
+        assert [u for u, _ in _Session.posted] == ["http://ntfy:80/AUDITMARK-topic"]
+
+
+async def test_ntfy_default_server_counts_as_the_saved_one_when_none_is_saved(monkeypatch):
+    _Session.posted = []
+    monkeypatch.setattr("aiohttp.ClientSession", _Session)
+    resp = await _test("ntfy", {"server_url": "https://ntfy.sh", "topic": REDACTED}, app_config=_ntfy_config(server=""))
+    assert resp.success is True, resp.message
+    assert [u for u, _ in _Session.posted] == ["https://ntfy.sh/AUDITMARK-topic"]

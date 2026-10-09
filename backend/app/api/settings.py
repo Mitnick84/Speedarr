@@ -768,10 +768,13 @@ async def test_connection(
                 saved = app_config.notifications.ntfy if app_config else None
                 if not saved or not saved.topic:
                     return TestConnectionResponse(success=False, message="No saved ntfy topic")
-                # The saved topic is a credential: post it only to the saved server, never to a
-                # server the caller names (audit T1-2 shape).
+                # The saved topic is a credential: it is only tested against the saved server; a
+                # different typed server is refused, not swapped for the saved one (audit NEW-11).
+                saved_server = saved.server_url or "https://ntfy.sh"
+                if server_url and not _same_address(server_url, saved_server):
+                    return _pinned("topic")
                 topic = saved.topic
-                server_url = saved.server_url or "https://ntfy.sh"
+                server_url = saved_server
 
             if not topic:
                 return TestConnectionResponse(

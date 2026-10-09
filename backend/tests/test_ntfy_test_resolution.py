@@ -1,8 +1,8 @@
 """POST /api/settings/test/ntfy resolves a masked topic from the saved config and pins the server (audit T1-3).
 
-Once the topic is masked in responses, the UI posts the placeholder back; the endpoint must use
-the saved topic AND the saved server, so a caller cannot make Speedarr post the stored topic to a
-host they name (the T1-2 shape). Pattern: test_settings_test_connection.py.
+Once the topic is masked in responses, the UI posts the placeholder back; the endpoint uses the saved
+topic and refuses a masked-topic test that names a different server, so a caller cannot make
+Speedarr post the stored topic to a host they name (the T1-2 shape). Pattern: test_settings_test_connection.py.
 """
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -70,14 +70,23 @@ async def _call(config, body, use_existing=False):
 
 
 async def test_masked_topic_uses_saved_topic_and_saved_server():
-    resp = await _call(_config(), {"server_url": "https://attacker.example", "topic": REDACTED})
+    resp = await _call(_config(), {"server_url": "https://ntfy.saved.example", "topic": REDACTED})
     assert resp.success is True
     assert _FakeSession.posted == ["https://ntfy.saved.example/AUDITMARK-topic"]
 
 
+async def test_masked_topic_with_a_different_server_is_refused_not_swapped():
+    # Was a silent fallback to the saved server that reported success (audit NEW-11).
+    resp = await _call(_config(), {"server_url": "https://attacker.example", "topic": REDACTED})
+    assert resp.success is False
+    assert resp.message == "Enter the topic to test a different address"
+    assert _FakeSession.posted == []
+
+
 async def test_use_existing_flag_also_pins_the_server():
-    await _call(_config(), {"server_url": "https://attacker.example", "topic": "ignored"}, use_existing=True)
-    assert _FakeSession.posted == ["https://ntfy.saved.example/AUDITMARK-topic"]
+    resp = await _call(_config(), {"server_url": "https://attacker.example", "topic": "ignored"}, use_existing=True)
+    assert resp.success is False
+    assert _FakeSession.posted == []
 
 
 async def test_plain_topic_posts_where_the_caller_says():
