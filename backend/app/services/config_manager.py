@@ -38,6 +38,7 @@ from app.config import (
     section_label,
     SECRETS_SCHEMA_VERSION,
     REDACTED,
+    validation_detail,
 )
 from app.models.configuration import Configuration, ConfigurationHistory
 from app.utils.logger import set_log_level
@@ -1188,7 +1189,8 @@ class ConfigManager:
         try:
             new_config = SpeedarrConfig(**config_data)
         except Exception as e:
-            raise ValueError(f"Invalid configuration: {e}")
+            # validation_detail: str(e) echoes the whole input, decrypted secrets included (audit NEW-12)
+            raise ValueError(f"Invalid configuration: {validation_detail(e)}")
 
         # Clear existing config keys that are no longer valid
         # This handles removal of legacy configs
