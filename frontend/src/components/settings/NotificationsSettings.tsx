@@ -180,12 +180,10 @@ export const NotificationsSettings: React.FC = () => {
     setPushoverTestResult(null);
 
     try {
-      const useExisting = config.pushover.user_key?.includes('***REDACTED***') ||
-                          config.pushover.api_token?.includes('***REDACTED***');
       const response = await apiClient.testConnection('pushover', {
         user_key: config.pushover.user_key,
         api_token: config.pushover.api_token,
-      }, useExisting);
+      }, false);
       setPushoverTestResult({ success: response.success, message: response.message });
       if (response.success) {
         setTimeout(() => setPushoverTestResult(null), 3000);

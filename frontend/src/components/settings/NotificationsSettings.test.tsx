@@ -132,4 +132,23 @@ describe('NotificationsSettings masked chat id and topic (audit T1-3)', () => {
       ),
     );
   });
+
+  it('tests Pushover with the typed user key and the masked token, never the saved key', async () => {
+    api.getSettingsSection.mockResolvedValue({
+      config: {
+        ...config,
+        pushover: { enabled: true, user_key: 'AUDITMARK-fresh-user-key', api_token: '***REDACTED***', priority: 1, events },
+      },
+    });
+    renderTab();
+    await screen.findByLabelText('Pushover priority');
+    fireEvent.click(screen.getByRole('button', { name: /test pushover/i }));
+    await waitFor(() =>
+      expect(api.testConnection).toHaveBeenCalledWith(
+        'pushover',
+        { user_key: 'AUDITMARK-fresh-user-key', api_token: '***REDACTED***' },
+        false,
+      ),
+    );
+  });
 });
