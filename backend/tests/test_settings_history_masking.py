@@ -43,3 +43,17 @@ async def test_history_masks_json_and_scalar_secrets_and_passes_markers_through(
     assert json.loads(out[1].old_value)[0]["password"] == REDACTED and out[1].new_value == "[DELETED]"
     assert (out[2].old_value, out[2].new_value) == (REDACTED, REDACTED)
     assert (out[3].old_value, out[3].new_value) == ("a", "b")
+
+
+async def test_history_masks_by_key_not_by_the_rows_value_type():
+    entries = [
+        # value_type is the NEW value's; the old value here is still a json list (audit NEW-10)
+        _entry("download_clients", json.dumps([{"id": "qb", "password": "AUDITMARK-old-pass"}]), "x", "string"),
+        # a secret key whose old text is not valid json under a json value_type
+        _entry("notifications.ntfy.topic", "AUDITMARK-old-topic", '"AUDITMARK-new-topic"', "json"),
+    ]
+    out = await get_history(key=None, limit=100, only_changed=False, request=_request(entries),
+                            db=None, current_user=None)
+    assert "AUDITMARK" not in json.dumps([e.model_dump() for e in out])
+    assert json.loads(out[0].old_value) == [{"id": "qb", "password": REDACTED}]
+    assert (out[1].old_value, out[1].new_value) == (REDACTED, REDACTED)

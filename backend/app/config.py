@@ -870,21 +870,33 @@ def mask_value(key: str, value: Any) -> Any:
     return transform_secrets(key, value, lambda _secret: REDACTED)
 
 
-def mask_stored(key: str, value_str: Optional[str], value_type: str) -> Optional[str]:
+def mask_stored(key: str, value_str: Optional[str]) -> Optional[str]:
     """mask_value over a serialised database value (configuration_history rows).
 
-    None, empty, the '[DELETED]' marker, the legacy 'None' literal and unparseable json
-    come back unchanged.
+    Decided by key, never by the row's value_type (it describes the new value only). None, empty,
+    the '[DELETED]' marker and the legacy 'None' literal come back unchanged. A secret key is
+    REDACTED outright; a key with secrets inside its json is masked leaf by leaf, and REDACTED
+    when the text is not a json list or object (audit NEW-10).
     """
     if value_str in (None, "", "[DELETED]", "None"):
         return value_str
-    if value_type == "json":
+    if is_sensitive_key(key):
+        return REDACTED
+    if has_sensitive_leaves(key):
         try:
             parsed = json.loads(value_str)
         except (ValueError, TypeError):
-            return value_str
-        return json.dumps(mask_value(key, parsed))
-    return mask_value(key, value_str)
+            return REDACTED
+        # The shape the secret paths expect: a leading "[]" means a list of objects, else an object.
+        # _apply_at passes a mismatched value through, so refuse it here (audit NEW-10).
+        wants_list = any(p and p[0] == "[]" for p in _paths_under(key))
+        if wants_list:
+            if isinstance(parsed, list) and all(isinstance(i, dict) for i in parsed):
+                return json.dumps(mask_value(key, parsed))
+        elif isinstance(parsed, dict):
+            return json.dumps(mask_value(key, parsed))
+        return REDACTED
+    return value_str
 
 
 def validation_detail(exc: Exception) -> str:

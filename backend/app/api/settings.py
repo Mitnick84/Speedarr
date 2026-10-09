@@ -1137,8 +1137,8 @@ async def get_history(
     return [
         HistoryEntry(
             key=entry.key,
-            old_value=mask_stored(entry.key, entry.old_value, entry.value_type),
-            new_value=mask_stored(entry.key, entry.new_value, entry.value_type),
+            old_value=mask_stored(entry.key, entry.old_value),
+            new_value=mask_stored(entry.key, entry.new_value),
             value_type=entry.value_type,
             changed_at=entry.changed_at.isoformat(),
             changed_by=entry.changed_by,

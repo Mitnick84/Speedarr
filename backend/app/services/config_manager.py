@@ -623,7 +623,7 @@ class ConfigManager:
         existing = result.scalar_one_or_none()
 
         if existing:
-            history_old = mask_stored(key, existing.value, existing.value_type) if secret_row else existing.value
+            history_old = mask_stored(key, existing.value) if secret_row else existing.value
             db.add(ConfigurationHistory(
                 key=key, old_value=history_old, new_value=history_new,
                 value_type=value_type, changed_by=user_id,
@@ -844,8 +844,8 @@ class ConfigManager:
             for entry in (await db.execute(select(ConfigurationHistory))).scalars().all():
                 if not (is_sensitive_key(entry.key) or has_sensitive_leaves(entry.key)):
                     continue
-                old_masked = mask_stored(entry.key, entry.old_value, entry.value_type)
-                new_masked = mask_stored(entry.key, entry.new_value, entry.value_type)
+                old_masked = mask_stored(entry.key, entry.old_value)
+                new_masked = mask_stored(entry.key, entry.new_value)
                 if old_masked != entry.old_value or new_masked != entry.new_value:
                     entry.old_value, entry.new_value = old_masked, new_masked
                     history_scrubbed += 1
@@ -1060,7 +1060,7 @@ class ConfigManager:
     async def _delete_row(self, row: Configuration, db: AsyncSession) -> None:
         """Delete one row, recording it in history with the old value masked when it holds a secret."""
         secret_row = is_sensitive_key(row.key) or has_sensitive_leaves(row.key)
-        old_value = mask_stored(row.key, row.value, row.value_type) if secret_row else row.value
+        old_value = mask_stored(row.key, row.value) if secret_row else row.value
         db.add(ConfigurationHistory(
             key=row.key, old_value=old_value, new_value=DELETED, value_type=row.value_type, changed_by=None,
         ))

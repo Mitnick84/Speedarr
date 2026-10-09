@@ -140,15 +140,15 @@ def test_mask_value_section_and_list():
 
 def test_mask_stored_variants():
     row = json.dumps([{"id": "qb", "password": "p"}])
-    assert json.loads(mask_stored("download_clients", row, "json")) == [{"id": "qb", "password": REDACTED}]
-    assert mask_stored("plex.token", "gAAAAciphertext", "string") == REDACTED
-    assert mask_stored("plex.token", "[DELETED]", "string") == "[DELETED]"
-    assert mask_stored("plex.token", None, "string") is None
-    assert mask_stored("plex.token", "", "string") == ""
-    assert mask_stored("plex.token", "None", "string") == "None"
-    assert mask_stored("download_clients", "[DELETED]", "json") == "[DELETED]"
-    assert mask_stored("download_clients", "{not json", "json") == "{not json"
-    assert mask_stored("snmp.host", "router", "string") == "router"
+    assert json.loads(mask_stored("download_clients", row)) == [{"id": "qb", "password": REDACTED}]
+    assert mask_stored("plex.token", "gAAAAciphertext") == REDACTED
+    assert mask_stored("plex.token", "[DELETED]") == "[DELETED]"
+    assert mask_stored("plex.token", None) is None
+    assert mask_stored("plex.token", "") == ""
+    assert mask_stored("plex.token", "None") == "None"
+    assert mask_stored("download_clients", "[DELETED]") == "[DELETED]"
+    assert mask_stored("download_clients", "{not json") == REDACTED
+    assert mask_stored("snmp.host", "router") == "router"
 
 
 def test_secret_leaf_names_feed_the_redactor():
