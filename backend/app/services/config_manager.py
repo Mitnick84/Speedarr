@@ -1203,8 +1203,8 @@ class ConfigManager:
         )
         existing_keys = {row.key for row in result.scalars().all()}
 
-        # Flatten new config
-        flat_config = flatten_dict(config_data)
+        # Flatten the validated model, not the raw dict, so validator normalisation is stored (audit B2-6)
+        flat_config = flatten_dict(new_config.model_dump())
         new_keys = set(flat_config.keys())
 
         # Remove keys that are no longer in the config
