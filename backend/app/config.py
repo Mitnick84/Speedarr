@@ -2,7 +2,7 @@
 Configuration management for Speedarr.
 """
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import json
 import ipaddress
@@ -885,6 +885,19 @@ def mask_stored(key: str, value_str: Optional[str], value_type: str) -> Optional
             return value_str
         return json.dumps(mask_value(key, parsed))
     return mask_value(key, value_str)
+
+
+def validation_detail(exc: Exception) -> str:
+    """An error message that names the failing fields and never the values (audit NEW-14).
+
+    str() of a ValidationError echoes input_value, which can hold a resolved or decrypted secret.
+    """
+    if not isinstance(exc, ValidationError):
+        return str(exc)
+    return "; ".join(
+        f"{'.'.join(str(p) for p in e['loc'])}: {e['msg']}" if e["loc"] else e["msg"]
+        for e in exc.errors(include_input=False, include_url=False)
+    )
 
 
 # ---------------------------------------------------------------------------

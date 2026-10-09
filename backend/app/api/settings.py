@@ -13,7 +13,7 @@ from app.models.user import User
 from app.services.config_manager import ConfigManager
 from app.config import (
     SpeedarrConfig, DownloadClientConfig, MediaServerConfig, mask_value, mask_stored, moved_secret,
-    moved_secret_message, REDACTED,
+    moved_secret_message, validation_detail, REDACTED,
 )
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
@@ -1370,7 +1370,7 @@ async def update_download_clients(
                 client_config = DownloadClientConfig(**client_data)
                 processed_clients.append(client_config)
             except Exception as e:
-                raise ValueError(f"Invalid client configuration for {client_data.get('name', 'unknown')}: {e}")
+                raise ValueError(f"Invalid client configuration for {client_data.get('name', 'unknown')}: {validation_detail(e)}")
 
         # Update configuration
         # In setup mode, load the current config from database (it was initialized earlier)
@@ -1506,7 +1506,7 @@ async def update_media_servers(
             try:
                 processed.append(MediaServerConfig(**data))
             except Exception as e:
-                raise ValueError(f"Invalid media server '{data.get('name', 'unknown')}': {e}")
+                raise ValueError(f"Invalid media server '{data.get('name', 'unknown')}': {validation_detail(e)}")
 
         if is_setup_mode:
             config = await config_manager.load_config_from_db(db)
