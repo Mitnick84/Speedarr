@@ -1072,7 +1072,6 @@ async def gather_logs(
 
     Returns recent log content with every stored secret (passwords, API keys, tokens, webhook URLs, the SNMP community string, notification keys, chat IDs and topics) replaced with [REDACTED].
     """
-    import os
     from pathlib import Path
 
     # Log file locations to check
